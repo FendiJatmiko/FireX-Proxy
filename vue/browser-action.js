@@ -16,7 +16,7 @@ import BlacklistPattern from '@/components/BlacklistPattern.vue'
 
 Vue.use(Vuetify, {
     theme: {
-        primary: '#795548'
+        primary: '#554fe8'
     }
 });
 

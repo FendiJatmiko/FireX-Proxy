@@ -3,27 +3,31 @@
         <v-toolbar color="primary" :dark="true">
             <v-toolbar-title>FireX Proxy</v-toolbar-title>
             <v-spacer></v-spacer>
-            <filter-list v-if="active === 0"></filter-list>
-            <refresher v-if="active === 0"></refresher>
+            <filter-list v-if="active === 'tab-1'"></filter-list>
+            <refresher v-if="active === 'tab-1'"></refresher>
+            <v-tabs v-model="active"
+                    slot="extension"
+                    grow
+                    color="transparent"
+                    slider-color="primary lighten-2">
+                <v-tab href="#tab-1">
+                    {{ 'home' | translate }}
+                </v-tab>
+                <v-tab href="#tab-2">
+                    {{ 'websites' | translate }}
+                </v-tab>
+            </v-tabs>
         </v-toolbar>
         <v-content>
-            <proxy-list v-if="active === 0"></proxy-list>
-            <blacklist v-else-if="active === 1"></blacklist>
+            <v-tabs-items v-model="active">
+                <v-tab-item value="tab-1">
+                    <proxy-list></proxy-list>
+                </v-tab-item>
+                <v-tab-item value="tab-2">
+                    <blacklist></blacklist>
+                </v-tab-item>
+            </v-tabs-items>
         </v-content>
-        <v-bottom-nav
-                :active.sync="active"
-                :dark="true"
-                color="primary">
-            <v-btn flat color="white">
-                <span>{{ 'home' | translate }}</span>
-                <v-icon>home</v-icon>
-            </v-btn>
-
-            <v-btn flat color="white">
-                <span>{{ 'websites' | translate }}</span>
-                <v-icon>web</v-icon>
-            </v-btn>
-        </v-bottom-nav>
         <v-dialog v-model="dialog" persistent>
             <v-card>
                 <v-card-title class="headline">{{ 'conflict' | translate }}</v-card-title>
@@ -62,7 +66,7 @@
         data() {
             return {
                 conflicts: [],
-                active: 0,
+                active: 'tab-1',
                 dialog: false
             };
         },

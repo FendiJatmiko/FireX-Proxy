@@ -5,14 +5,14 @@
 </template>
 
 <script>
-    import * as constants from '@/common/constants.js';
-    import bus from '@/common/bus.js';
+    import * as constants from '@/common/constants.js'
+    import bus from '@/common/bus.js'
 
     export default {
         name: 'Refresher',
         methods: {
             update() {
-                bus.$emit(constants.PROXY_UPDATE_EVENT);
+                this.$store.dispatch('poll', true).then(() => bus.$emit(constants.PROXY_UPDATE_FINISHED));
             }
         }
     }

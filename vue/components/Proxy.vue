@@ -7,7 +7,7 @@
                 </v-btn>
             </v-flex>
             <v-flex xs1>
-                <flag-icon class="flag-icon-circle" v-bind="{ iso: proxy.isoCode }" />
+                <flag-icon class="flag-icon-circle" v-bind="{ iso: proxy.isoCode }"></flag-icon>
             </v-flex>
             <v-flex class="text-truncate" xs5>
                 {{ proxy.country }}
@@ -27,23 +27,22 @@
 </template>
 
 <script>
-    import FlagIcon from '@/components/FlagIcon.vue';
-    import StrengthIndicator from "@/components/StrengthIndicator.vue";
-    import * as browser from 'webextension-polyfill';
+    import FlagIcon from '@/components/FlagIcon.vue'
+    import StrengthIndicator from "@/components/StrengthIndicator.vue"
+    import * as browser from 'webextension-polyfill'
 
     export default {
+        components: {
+            StrengthIndicator,
+            FlagIcon
+        },
         name: 'Proxy',
         props: {
             proxy: Object
         },
-        Components: {
-            FlagIcon,
-            StrengthIndicator
-        },
         methods: {
             apply() {
                 this.proxy.activeState = !this.proxy.activeState;
-
                 this.$emit('proxyStateChanged', this.$vnode.key, this.proxy.activeState);
             },
             toggleFavorite() {

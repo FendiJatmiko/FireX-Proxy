@@ -46,8 +46,8 @@
 </template>
 
 <script>
-    import * as browser from 'webextension-polyfill';
-    import BlacklistPattern from '@/components/BlacklistPattern.vue';
+    import BlacklistPattern from '@/components/BlacklistPattern.vue'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'Blacklist',
@@ -56,50 +56,34 @@
         },
         data() {
             return {
-                isBlacklistEnabled: false,
-                patterns: [],
                 newPattern: String(),
                 search: String(),
                 polled: false
             }
         },
-        watch: {
-            isBlacklistEnabled() {
-                if (!this.polled) {
-                    return;
-                }
-
-                this.save();
-            },
-            patterns: {
-                handler() {
-                    if (!this.polled) {
-                        return;
-                    }
-
-                    this.save();
-                },
-                deep: true
-            }
-        },
         computed: {
             filteredPatterns() {
                 return this.patterns.filter(value => value.toLowerCase().includes(this.search.toLowerCase()));
+            },
+            ...mapState('patterns', {
+                patterns: 'patterns'
+            }),
+            isBlacklistEnabled: {
+                get() {
+                    return this.$store.state.patterns.isBlacklistEnabled;
+                },
+                set(newState) {
+                    this.$store.commit('patterns/setBlacklistEnabled', newState);
+                    this.save();
+                }
             }
         },
         methods: {
             poll() {
-                browser.storage.local.get().then(storage => {
-                    this.isBlacklistEnabled = storage.isBlacklistEnabled || false;
-                    this.patterns = storage.patterns || [];
-                    this.polled = true;
-                });
+                this.$store.dispatch('patterns/poll').then(() => this.polled = true)
             },
             save() {
-                browser.storage.local.set({
-                    isBlacklistEnabled: this.isBlacklistEnabled,
-                    patterns: this.patterns
-                });
+                this.$store.dispatch('patterns/save')
             },
             submit() {
                 if (!this.newPattern.length) {
@@ -109,18 +93,17 @@
                 const duplicate = this.patterns.indexOf(this.newPattern);
 
                 if (duplicate > -1) {
-                    this.patterns.splice(duplicate, 1);
+                    this.$store.commit('patterns/removePattern', duplicate);
                 }
 
-                this.patterns.push(this.newPattern);
+                this.$store.commit('patterns/addPattern', this.newPattern);
+                this.save();
                 this.newPattern = String();
             },
             remove(index) {
-                this.patterns.splice(index, 1);
-
-                if (this.patterns.length === 0) {
-                    this.isBlacklistEnabled = false;
-                }
+                this.$store.commit('patterns/removePattern', index);
+                this.$store.commit('patterns/setBlacklistEnabled', this.patterns.length !== 0);
+                this.save();
             }
         },
         mounted() {

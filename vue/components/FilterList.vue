@@ -45,100 +45,70 @@
 </template>
 
 <script>
-    import bus from '@/common/bus.js';
-    import * as constants from '@/common/constants.js';
-    import * as browser from 'webextension-polyfill';
+    import bus from '@/common/bus.js'
+    import * as constants from '@/common/constants.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'FilterList',
         data() {
             return {
-                countries: [],
-                countryFilter: [],
-                protocols: [],
-                protocolFilter: [],
-                favorites: true,
                 polled: false
-            }
-        },
-        watch: {
-            countryFilter() {
-                if (!this.polled) {
-                    return;
-                }
-
-                this.updateFilters();
-            },
-            protocolFilter() {
-                if (!this.polled) {
-                    return;
-                }
-
-                this.updateFilters();
-            },
-            favorites() {
-                if (!this.polled) {
-                    return;
-                }
-
-                this.updateFilters();
             }
         },
         computed: {
             countFilters() {
                 return Number(this.countryFilter.length > 0) + Number(this.protocolFilter.length !== this.protocols.length) + Number(this.favorites === false);
-            }
+            },
+            favorites: {
+                get() {
+                    return this.$store.state.filters.favorites;
+                },
+                set(newValue) {
+                    this.$store.commit('filters/setFavoriteState', newValue);
+                    this.updateFilters();
+                }
+            },
+            protocolFilter: {
+                get() {
+                    return this.$store.state.filters.protocolFilter;
+                },
+                set(newValue) {
+                    this.$store.commit('filters/setProtocolFilter', newValue);
+                    this.updateFilters();
+                }
+            },
+            countryFilter: {
+                get() {
+                    return this.$store.state.filters.countryFilter;
+                },
+                set(newValue) {
+                    this.$store.commit('filters/setCountryFilter', newValue);
+                    this.updateFilters();
+                }
+            },
+            ...mapState('filters', {
+                countries: 'countries',
+                protocols: 'protocols'
+            })
         },
         methods: {
-            onProxiesUpdated(newProxies) {
-                let uniqueCountries = new Set(newProxies.map(proxy => proxy.country));
-                let newProtocols    = [...new Set(newProxies.map(proxy => proxy.protocol))];
-
-                // New protocols should be enabled in filters
-                this.protocolFilter = this.protocolFilter.concat(newProtocols.filter(protocol => this.protocols.indexOf(protocol) < 0));
-                this.countries      = [...uniqueCountries].sort();
-                this.protocols      = newProtocols;
+            onProxiesUpdated() {
+                this.$store.dispatch('filters/updateChoices', this.$store.state.proxies.all);
+                this.updateFilters();
             },
             updateFilters() {
-                this.save();
+                if (!this.polled) {
+                    return;
+                }
 
-                bus.$emit(constants.FILTERS_UPDATED, {
-                    countries: this.countryFilter,
-                    protocols: this.protocolFilter,
-                    favorites: this.favorites,
-                });
-            },
-            onFiltersReset() {
-                this.countryFilter = [];
-                this.protocolFilter = this.protocols;
-                this.favorites = true;
+                this.save();
             },
             poll() {
-                browser.runtime.sendMessage({
-                    name: 'poll-state',
-                }).then(state => {
-                    const { filters } = state;
-                    const { countryFilter, protocolFilter, favorites, protocols } = filters;
-
-                    this.countryFilter = countryFilter;
-                    this.protocolFilter = protocolFilter;
-                    this.protocols = protocols;
-                    this.favorites = favorites;
-                    this.polled = true;
-                });
+                this.$store.dispatch('filters/update').then(() => this.polled = true);
             },
             save() {
-                browser.runtime.sendMessage({
-                    name: 'update-state',
-                    message: {
-                        filters: {
-                            countryFilter: this.countryFilter,
-                            protocolFilter: this.protocolFilter,
-                            protocols: this.protocols,
-                            favorites: this.favorites
-                        }
-                    }
-                })
+                this.$store.dispatch('filters/save');
             }
         },
         mounted() {
@@ -146,12 +116,10 @@
 
             bus.$on(constants.PROXY_UPDATE_FINISHED, this.onProxiesUpdated);
             bus.$on(constants.PROXY_UPDATE_FINISHED, this.updateFilters);
-            bus.$on(constants.FILTERS_RESET, this.onFiltersReset);
         },
         beforeDestroy() {
             bus.$off(constants.PROXY_UPDATE_FINISHED, this.onProxiesUpdated);
             bus.$off(constants.PROXY_UPDATE_FINISHED, this.updateFilters);
-            bus.$off(constants.FILTERS_RESET, this.onFiltersReset);
         }
     }
 </script>

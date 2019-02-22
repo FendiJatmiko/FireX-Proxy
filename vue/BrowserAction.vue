@@ -3,27 +3,27 @@
         <v-toolbar color="primary" :dark="true">
             <v-toolbar-title>FireX Proxy</v-toolbar-title>
             <v-spacer></v-spacer>
-            <filter-list v-if="active === 'tab-1'"></filter-list>
-            <refresher v-if="active === 'tab-1'"></refresher>
+            <filter-list v-if="active === 'home'"></filter-list>
+            <refresher v-if="active === 'home'"></refresher>
             <v-tabs v-model="active"
                     slot="extension"
                     grow
                     color="transparent"
                     slider-color="primary lighten-2">
-                <v-tab href="#tab-1">
-                    {{ 'home' | translate }}
+                <v-tab key="1" href="#home">
+                    {{ "home" | translate }}
                 </v-tab>
-                <v-tab href="#tab-2">
-                    {{ 'websites' | translate }}
+                <v-tab key="2" href="#websites">
+                    {{ "websites" | translate }}
                 </v-tab>
             </v-tabs>
         </v-toolbar>
         <v-content>
             <v-tabs-items v-model="active">
-                <v-tab-item value="tab-1">
+                <v-tab-item key="1" id="home">
                     <proxy-list></proxy-list>
                 </v-tab-item>
-                <v-tab-item value="tab-2">
+                <v-tab-item key="2" id="websites">
                     <blacklist></blacklist>
                 </v-tab-item>
             </v-tabs-items>
@@ -55,10 +55,12 @@
     import Refresher from "@/components/Refresher.vue";
     import FilterList from "@/components/FilterList.vue";
     import * as browser from 'webextension-polyfill';
+    import Blacklist from "./components/Blacklist.vue";
 
     export default {
         name: 'popup',
         components: {
+            Blacklist,
             FilterList,
             ProxyList,
             Refresher
@@ -66,7 +68,7 @@
         data() {
             return {
                 conflicts: [],
-                active: 'tab-1',
+                active: 'home',
                 dialog: false
             };
         },
@@ -88,7 +90,7 @@
                 });
             },
             resolveConflicts() {
-                this.dialog    = false;
+                this.dialog = false;
                 this.conflicts = [];
 
                 browser.runtime.sendMessage({
@@ -109,17 +111,18 @@
         height: 100%;
         .v-content {
             max-height: calc(100% - 56px - 57px);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        .v-bottom-nav {
-            transform: unset;
         }
         .conflicts {
             img {
                 height: 16px;
                 width: 16px;
             }
+        }
+
+        .v-tabs__items, .v-tabs__content {
+            height: 100%;
+            overflow: auto;
+            overflow-x: hidden;
         }
     }
 </style>

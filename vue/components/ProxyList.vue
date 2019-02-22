@@ -7,7 +7,7 @@
         </v-progress-circular>
         <v-container grid-list-xs v-else-if="filtered.length > 0">
             <v-layout justify-center column>
-                <proxy v-for="(proxy, index) in filtered"
+                <proxy-component v-for="(proxy, index) in filtered"
                        :key="index"
                        v-bind="{ proxy: proxy }"
                        @proxyStateChanged="apply" />
@@ -20,70 +20,39 @@
 </template>
 
 <script>
-    import ProxyComponent from '@/components/Proxy.vue';
-    import * as browser from 'webextension-polyfill';
-    import bus from '@/common/bus.js';
-    import * as constants from '@/common/constants.js';
+    import ProxyComponent from '@/components/Proxy.vue'
+    import * as browser from 'webextension-polyfill'
+    import bus from '@/common/bus.js'
+    import * as constants from '@/common/constants.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'ProxyList',
         components: {
             ProxyComponent
         },
-        data() {
-            return {
-                proxies: [],
-                loaded: false,
-                filterConfig: {
-                    countries: [],
-                    protocols: [],
-                    favorites: false,
-                }
-            }
-        },
         methods: {
-            getData(isForce = false) {
-                this.loaded = false;
-
-                browser.runtime.sendMessage({
-                    name: 'get-proxies',
-                    message: {
-                        force: isForce
-                    }
-                }).then(proxies => {
-                    this.proxies = proxies.map(proxy => Object.assign({}, proxy, {country: proxy.country || 'Unknown'}));
-                    this.loaded = true;
-
-                    bus.$emit(constants.PROXY_UPDATE_FINISHED, this.proxies);
-                });
-            },
-            refresh() {
-                this.getData(true);
-            },
             apply(index, newState) {
                 const current = this.proxies.findIndex(
                     proxy => proxy.ipAddress === this.filtered[index].ipAddress && proxy.port === this.filtered[index].port
                 );
 
-                this.proxies.forEach(
-                    (proxy, i) => {
-                        if (i === current) {
-                            return;
-                        }
+                this.proxies.forEach((proxy, i) => {
+                    if (i === current) {
+                        return;
+                    }
 
-                        proxy.activeState = false;
-                    });
+                    proxy.activeState = false;
+                });
 
                 browser.runtime.sendMessage({
                     name: newState ? 'connect' : 'disconnect',
                     message: this.filtered[index]
                 })
             },
-            filters(newFilterConfig) {
-                this.filterConfig = newFilterConfig;
-            },
             resetFilters() {
-                bus.$emit(constants.FILTERS_RESET);
+                this.$store.commit('filters/resetFilters');
+                this.$store.dispatch('filters/save');
             }
         },
         computed: {
@@ -91,22 +60,24 @@
                 deep: true,
                 get() {
                     return this.proxies.filter(proxy => {
-                        const { protocols, countries, favorites } = this.filterConfig;
+                        const { protocols, countries, favorites } = this;
 
                         return protocols.indexOf(proxy.protocol) > -1 && (countries.length === 0 || countries.indexOf(proxy.country) > -1) && (favorites || !proxy.favoriteState);
                     });
                 }
-            }
+            },
+            ...mapState({
+                loaded: state => state.proxies.loaded,
+                proxies: state => state.proxies.all
+            }),
+            ...mapState('filters', {
+                favorites: 'favorites',
+                protocols: 'protocolFilter',
+                countries: 'countryFilter'
+            })
         },
         mounted() {
-            this.getData();
-
-            bus.$on(constants.PROXY_UPDATE_EVENT, this.refresh);
-            bus.$on(constants.FILTERS_UPDATED, this.filters);
-        },
-        beforeDestroy() {
-            bus.$off(constants.PROXY_UPDATE_EVENT, this.refresh);
-            bus.$off(constants.FILTERS_UPDATED, this.filters);
+            this.$store.dispatch('poll').then(() => bus.$emit(constants.PROXY_UPDATE_FINISHED));
         }
     }
 </script>

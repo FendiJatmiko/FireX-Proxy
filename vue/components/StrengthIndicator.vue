@@ -16,11 +16,13 @@
         },
         computed: {
             className() {
-                if (this.strength <= this.strengths[0]) {
+                const [fourBars, threeBars, twoBars] = this.strengths;
+
+                if (this.strength <= fourBars) {
                     return 'four-bars';
-                } else if (this.strength <= this.strengths[1]) {
+                } else if (this.strength <= threeBars) {
                     return 'three-bars';
-                } else if (this.strength <= this.strengths[2]) {
+                } else if (this.strength <= twoBars) {
                     return 'two-bars';
                 } else {
                     return 'one-bar';

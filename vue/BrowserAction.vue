@@ -1,8 +1,9 @@
 <template>
     <v-app>
-        <v-toolbar color="primary" :dark="true">
+        <v-toolbar color="primary" dark>
             <v-toolbar-title>FireX Proxy</v-toolbar-title>
             <v-spacer></v-spacer>
+            <add-proxy-component></add-proxy-component>
             <filter-list v-if="active === 'home'"></filter-list>
             <refresher v-if="active === 'home'"></refresher>
             <v-tabs v-model="active"
@@ -56,10 +57,12 @@
     import FilterList from "@/components/FilterList.vue";
     import * as browser from 'webextension-polyfill';
     import Blacklist from "./components/Blacklist.vue";
+    import AddProxyComponent from "./components/AddProxyComponent.vue";
 
     export default {
         name: 'popup',
         components: {
+            AddProxyComponent,
             Blacklist,
             FilterList,
             ProxyList,

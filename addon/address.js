@@ -1,5 +1,6 @@
 const pacDictionary = {
     'HTTP'   : 'PROXY',
+    'HTTPS'  : 'HTTPS',
     'SOCKS5' : 'SOCKS'
 };
 
@@ -13,6 +14,8 @@ export class Address {
         this.favoriteState = false;
         this.pingTimeMs    = null;
         this.isoCode       = null;
+        this.username      = null;
+        this.password      = null;
     }
 
     /**
@@ -202,5 +205,25 @@ export class Address {
      */
     getPac() {
         return `${this.getPacProtocol()} ${this.ipAddress}:${this.port}`;
+    }
+
+    setUsername(username) {
+        this.username = username;
+
+        return this;
+    }
+
+    setPassword(password) {
+        this.password = password;
+
+        return this;
+    }
+
+    getUsername() {
+        return this.username;
+    }
+
+    getPassword() {
+        return this.password;
     }
 }

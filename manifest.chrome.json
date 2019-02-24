@@ -15,7 +15,10 @@
     "proxy",
     "storage",
     "management",
-    "*://firexproxy.com/*"
+    "*://firexproxy.com/*",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
   ],
   "browser_action": {
     "browser_style": false,

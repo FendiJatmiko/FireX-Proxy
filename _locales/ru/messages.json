@@ -40,5 +40,32 @@
   },
   "websites": {
     "message": "Сайты"
+  },
+  "add_new_server": {
+    "message": "Добавить новый сервер"
+  },
+  "details": {
+    "message": "Детали"
+  },
+  "hostname": {
+    "message": "Адрес"
+  },
+  "port": {
+    "message": "Порт"
+  },
+  "credentials": {
+    "message": "Учетные данные (необязательно)"
+  },
+  "username": {
+    "message": "Логин"
+  },
+  "password": {
+    "message": "Пароль"
+  },
+  "create": {
+    "message": "Создать"
+  },
+  "reset": {
+    "message": "Сброс"
   }
 }

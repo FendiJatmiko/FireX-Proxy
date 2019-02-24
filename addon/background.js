@@ -121,6 +121,45 @@ import { detectConflicts } from './conflict.js';
         }
     });
 
+    var lastRequestId;
+    browser.webRequest.onAuthRequired.addListener(function( details, callback) {
+
+            console.log("onAuthRequired requestId:", details.requestId);
+            if (details.requestId === lastRequestId) {
+                console.log("Auth Failed!");
+                callback();
+            }
+
+            lastRequestId = details.requestId;
+
+            if (details && details.isProxy && details.url) {
+                console.log("got isProxy authRequired event for url: ", details.url, details);
+                try {
+                    let activeProxy = proxyListSession
+                        .filterEnabled()
+                        .one();
+
+                    if (activeProxy.getUsername() && activeProxy.getPassword()) {
+                        callback({
+                            authCredentials: {
+                                username: activeProxy.getUsername(),
+                                password: activeProxy.getPassword()
+                            }
+                        });
+                    } else {
+                        callback();
+                    }
+                } catch (e) {
+                    callback();
+                }
+            } else {
+                callback();
+            }
+
+        },
+        {urls: ["<all_urls>"]},
+        ["asyncBlocking"]);
+
     browser.runtime.onMessage.addListener(
         (request, sender, sendResponse) => {
             const { name, message } = request;
@@ -226,6 +265,24 @@ import { detectConflicts } from './conflict.js';
                 }
                 case 'poll-state': {
                     sendResponse(appState);
+
+                    break;
+                }
+                case 'add-proxy': {
+                    let { protocol, hostname, username, password, port } = message;
+                    let proxyObj = new Address()
+                        .setProtocol(protocol)
+                        .setIPAddress(hostname)
+                        .setPort(port)
+                        .setPingTimeMs(5)
+                        .setFavorite(true)
+                        .setUsername(username)
+                        .setPassword(password);
+
+                    proxyListSession = proxyListSession.union(Addresses.create([proxyObj]));
+                    browser.storage.local.set({
+                        favorites: [...proxyListSession.byFavorite()]
+                    });
 
                     break;
                 }

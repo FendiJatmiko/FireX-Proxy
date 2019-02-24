@@ -9,8 +9,8 @@
             <v-layout justify-center column>
                 <proxy-component v-for="(proxy, index) in filtered"
                        :key="index"
-                       v-bind="{ proxy: proxy }"
-                       @proxyStateChanged="apply" />
+                       v-bind="{ proxy: proxy }" @proxyStateChanged="apply">
+                </proxy-component>
             </v-layout>
         </v-container>
         <span class="body-2" v-else>

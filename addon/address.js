@@ -207,22 +207,36 @@ export class Address {
         return `${this.getPacProtocol()} ${this.ipAddress}:${this.port}`;
     }
 
+    /**
+     * @param {string} username
+     * @returns {Address}
+     */
     setUsername(username) {
         this.username = username;
 
         return this;
     }
 
+    /**
+     * @param {string} password
+     * @returns {Address}
+     */
     setPassword(password) {
         this.password = password;
 
         return this;
     }
 
+    /**
+     * @returns {string}
+     */
     getUsername() {
         return this.username;
     }
 
+    /**
+     * @returns {string}
+     */
     getPassword() {
         return this.password;
     }

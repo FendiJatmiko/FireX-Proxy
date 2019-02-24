@@ -121,44 +121,22 @@ import { detectConflicts } from './conflict.js';
         }
     });
 
-    var lastRequestId;
-    browser.webRequest.onAuthRequired.addListener(function( details, callback) {
+    const onAuthHandler = ({ isProxy, url }, asyncCallback) => {
+        if (isProxy && url) {
+            const proxy = proxyListSession.filterEnabled().one();
 
-            console.log("onAuthRequired requestId:", details.requestId);
-            if (details.requestId === lastRequestId) {
-                console.log("Auth Failed!");
-                callback();
-            }
-
-            lastRequestId = details.requestId;
-
-            if (details && details.isProxy && details.url) {
-                console.log("got isProxy authRequired event for url: ", details.url, details);
-                try {
-                    let activeProxy = proxyListSession
-                        .filterEnabled()
-                        .one();
-
-                    if (activeProxy.getUsername() && activeProxy.getPassword()) {
-                        callback({
-                            authCredentials: {
-                                username: activeProxy.getUsername(),
-                                password: activeProxy.getPassword()
-                            }
-                        });
-                    } else {
-                        callback();
+            if (proxy.getUsername() && proxy.getPassword()) {
+                asyncCallback({
+                    authCredentials: {
+                        username: proxy.getUsername(),
+                        password: proxy.getPassword()
                     }
-                } catch (e) {
-                    callback();
-                }
-            } else {
-                callback();
+                });
             }
+        }
+    };
 
-        },
-        {urls: ["<all_urls>"]},
-        ["asyncBlocking"]);
+    browser.webRequest.onAuthRequired.addListener(onAuthHandler, { urls: ["<all_urls>"] }, ["asyncBlocking"]);
 
     browser.runtime.onMessage.addListener(
         (request, sender, sendResponse) => {
